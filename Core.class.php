@@ -1069,66 +1069,67 @@ class Core extends FreePBX_Helpers implements BMO  {
 			//
 			if (isset($_FILES['pattern_file']) && $_FILES['pattern_file']['tmp_name'] != '') {
 				$uploaded_file = file($_FILES['pattern_file']['tmp_name'], FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-				$first_line = true;
-				foreach($uploaded_file AS $line) {
-					if($first_line) {
-						if($line != 'prepend,prefix,"match pattern",callerid') {
-							echo "<script>javascript:alert('" . _("Unsupported Pattern file format") . "')</script>";
-							return;
-						}
-						else {
-							$first_line = false;
-						}
-					}
-					else {
-						if(!preg_match("/^[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*$/i", $line)) {
-							echo "<script>javascript:alert('" . _("Unsupported Pattern file format") . "')</script>";
-							return;
-						}
-					}
-				}
-				$fh = fopen($_FILES['pattern_file']['tmp_name'], 'r');
-				if ($fh !== false) {
+				if (count($uploaded_file) !== 0) {
 					$csv_file = array();
 					$index = array();
-
-					// Check first row, ingoring empty rows and get indices setup
-					//
-					while (($row = fgetcsv($fh, 5000, ",", "\"")) !== false) {
-						if (count($row) == 1 && $row[0] == '') {
-							continue;
-						} else {
-							$count = count($row) > 4 ? 4 : count($row);
-							for ($i=0;$i<$count;$i++) {
-								switch (strtolower($row[$i])) {
+				}
+				$first_line = true;
+				$has_headers = false;
+				foreach($uploaded_file AS $line) {
+					$line = str_replace('"', '', $line);
+					$line_as_array = explode(',', $line);
+					if ($first_line) {
+						if (str_contains(strtolower($line), 'prepend') || str_contains(strtolower($line), 'prefix') || str_contains(strtolower($line), 'match pattern') || str_contains(strtolower($line), 'callerid')) {
+							$has_headers = true;
+							$count_headers = count($line_as_array);
+							for ($i=0;$i<$count_headers;$i++) {
+								switch (strtolower($line_as_array[$i])) {
 									case 'prepend':
 									case 'prefix':
 									case 'match pattern':
 									case 'callerid':
-										$index[strtolower($row[$i])] = $i;
+										$index[strtolower($line_as_array[$i])] = $i;
 									break;
 									default:
 									break;
 								}
 							}
+							$first_line = false;
+							continue;
+						} else if (preg_match("/^[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*$/i", $line)) {
+							$count = count($line_as_array);
 							// If no headers then assume standard order
-							if (count($index) == 0) {
-								$index['prepend'] = 0;
-								$index['prefix'] = 1;
-								$index['match pattern'] = 2;
-								$index['callerid'] = 3;
-								if ($count == 4) {
-									$csv_file[] = $row;
-								}
+							$index['prepend'] = 0;
+							$index['prefix'] = 1;
+							$index['match pattern'] = 2;
+							$index['callerid'] = 3;
+							if ($count == 4) {
+								$csv_file[] = $line_as_array;
 							}
-							break;
+							$first_line = false;
+							continue;
+						}
+						echo "<script>javascript:alert('" . _("Unsupported Pattern file format") . "')</script>";
+						return;
+					}
+					if ($has_headers) {
+						if (!preg_match("/^[XZN0-9\+\.\-\[\]]*,{0,1}[XZN0-9\+\.\-\[\]]*,{0,1}[XZN0-9\+\.\-\[\]]*,{0,1}[XZN0-9\+\.\-\[\]]*$/i", $line)) {
+							echo "<script>javascript:alert('" . _("Unsupported Pattern file format") . "')</script>";
+							return;
+						} else if (count($line_as_array) != $count_headers) {
+							echo "<script>javascript:alert('" . _("Malformated csv file") . "')</script>";
+							return;
+						}
+
+					} else {
+						if (!preg_match("/^[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*$/i", $line)) {
+							echo "<script>javascript:alert('" . _("Unsupported Pattern file format") . "')</script>";
+							return;
 						}
 					}
-					$row_count = count($index);
-					while (($row = fgetcsv($fh, 5000, ",", "\"")) !== false) {
-						if (count($row) == $row_count) {
-							$csv_file[] = $row;
-						}
+					$index_count = count($index);
+					if (count($line_as_array) == $index_count) {
+						$csv_file[] = $line_as_array;
 					}
 				}
 			}
