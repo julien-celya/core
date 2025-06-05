@@ -239,7 +239,7 @@
 			<field name="dial" type="string" length="255" default=""/>
 			<field name="devicetype" type="string" length="5" default=""/>
 			<field name="user" type="string" length="50" notnull="false"/>
-			<field name="description" type="string" length="50" notnull="false"/>
+			<field name="description" type="string" length="80" notnull="false"/>
 			<field name="emergency_cid" type="string" length="100" notnull="false"/>
 			<field name="hint_override" type="string" length="100" notnull="false"/>
 			<key name="id" type="index">
@@ -273,13 +273,13 @@
 		<table name="incoming">
 			<field name="cidnum" type="string" length="50" notnull="false"/>
 			<field name="extension" type="string" length="50"/>
-			<field name="destination" type="string" length="50" notnull="false"/>
+			<field name="destination" type="string" length="60" notnull="false"/>
 			<field name="privacyman" type="boolean" notnull="false"/>
 			<field name="alertinfo" type="string" length="255" notnull="false"/>
 			<field name="ringing" type="string" length="20" notnull="false"/>
 			<field name="fanswer" type="string" length="20" notnull="false"/>
 			<field name="mohclass" type="string" length="80" default="default"/>
-			<field name="description" type="string" length="80" notnull="false"/>
+			<field name="description" type="string" length="100" notnull="false"/>
 			<field name="grppre" type="string" length="80" notnull="false"/>
 			<field name="delay_answer" type="integer" notnull="false"/>
 			<field name="pricid" type="string" length="20" notnull="false"/>
@@ -291,7 +291,7 @@
 		</table>
 		<table name="dahdichandids">
 			<field name="channel" type="integer" default="0" primaryKey="true"/>
-			<field name="description" type="string" length="40" default=""/>
+			<field name="description" type="string" length="80" default=""/>
 			<field name="did" type="string" length="60" default=""/>
 		</table>
 		<table name="outbound_route_patterns">
