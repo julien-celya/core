@@ -3,13 +3,14 @@
 	<repo>standard</repo>
 	<category>Applications</category>
 	<name>Core</name>
-	<version>16.0.68.33</version>
+	<version>16.0.68.34</version>
 	<publisher>Sangoma Technologies Corporation</publisher>
 	<license>GPLv3+</license>
 	<licenselink>http://www.gnu.org/licenses/gpl-3.0.txt</licenselink>
 	<candisable>no</candisable>
 	<canuninstall>no</canuninstall>
 	<changelog>
+		*16.0.68.34* #iissue/771  and #issues/769 Increased the column length 
 		*16.0.68.33* #issues/740 backup and restore ignores outbound routes notifications 
 		*16.0.68.32* #678 revert Outbound Routes Dial patterns from CSV 
 		*16.0.68.31* #678 Outbound Routes Dial patterns from CSV 
