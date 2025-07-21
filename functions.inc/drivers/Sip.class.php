@@ -139,7 +139,7 @@ class Sip extends techDriver {
 				"value" => "no",
 				"flag" => $flag++
 			),
-			"webrtc" => array(
+			"bundle" => array(
 				"value" => "",
 				"flag" => $flag++
 			),
@@ -521,6 +521,7 @@ class Sip extends techDriver {
 	public function getDeviceHeaders() {
 		return array(
 			'secret' => array('identifier' => _('Secret'), 'description' => sprintf(_('Secret [Enter "%s" to regenerate]'),"REGEN")),
+			'bundle' => array('identifier' => _('Bundle'), 'description' => sprintf(_('Enable WebRTC defaults [Blank/no to disable,yes for enable]')))
 		);
 	}
 }
