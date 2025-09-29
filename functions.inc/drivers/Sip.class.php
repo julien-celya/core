@@ -155,6 +155,10 @@ class Sip extends techDriver {
 		$sth = $this->database->prepare($sql);
 		$settings = is_array($settings)?$settings:array();
 		foreach($settings as $key => $setting) {
+			if (!isset($setting['flag']) || empty($setting['flag'])) {
+				// If not set then default to 0
+				$setting['flag'] = 0;
+			}
 			$sth->execute(array($id,$key,$setting['value'],$setting['flag']));
 		}
 		return true;
