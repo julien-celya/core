@@ -743,11 +743,11 @@ $set['type'] = CONF_TYPE_BOOL;
 $freepbx_conf->define_conf_setting('HTTPENABLESTATIC',$set);
 
 // HTTPBINDADDRESS
-$set['value'] = '::';
+$set['value'] = '127.0.0.1';
 $set['defaultval'] =& $set['value'];
 $set['options'] = '';
 $set['name'] = 'HTTP Bind Address';
-$set['description'] = 'Address to bind to. Default is ::';
+$set['description'] = 'Address to bind to. Default is 127.0.0.1';
 $set['emptyok'] = 0;
 $set['type'] = CONF_TYPE_TEXT;
 $set['level'] = 2;
