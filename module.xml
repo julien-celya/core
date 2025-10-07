@@ -3,13 +3,14 @@
 	<repo>standard</repo>
 	<category>Applications</category>
 	<name>Core</name>
-	<version>16.0.68.37</version>
+	<version>16.0.68.38</version>
 	<publisher>Sangoma Technologies Corporation</publisher>
 	<license>GPLv3+</license>
 	<licenselink>http://www.gnu.org/licenses/gpl-3.0.txt</licenselink>
 	<candisable>no</candisable>
 	<canuninstall>no</canuninstall>
 	<changelog>
+		*16.0.68.38* FREEI-2317  HTTP Bind Address Setting &#x2013; Adjusted for Local Access Only 
 		*16.0.68.37* FREEI-2317  HTTP Bind Address Setting &#x2013; Adjusted for Local Access Only 
 		*16.0.68.36* GitHUB Issue #870 
 		*16.0.68.35* FREEI-2148 added webrtc bundle column into csv 
