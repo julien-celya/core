@@ -162,20 +162,6 @@ class core_conf {
 	function generate_http_additional($ast_version) {
 		$freepbxConfCreate = freepbx_conf::create();
 		$freepbx_conf =& $freepbxConfCreate;
-		$current_httpbindaddress = $freepbx_conf->get_conf_setting('HTTPBINDADDRESS');
-		$nt = \notifications::create();
-		if ($current_httpbindaddress === '::') {
-			// If value is "::" then blindly change to 127.0.0.1 and generate dashboard notice
-			$freepbx_conf->set('HTTPBINDADDRESS', '127.0.0.1');
-			$uid = 'core_httpbindaddress_changed';
-			if(!$nt->exists('core', $uid)) {
-				$nt->add_notice('core', $uid, 
-					_('HTTP Bind Address Setting – Adjusted for Local Access Only'), 
-					_('The HTTP Bind Address has been automatically updated from "::" to "127.0.0.1" to help limit access to your local machine. This adjustment enhances system behavior by allowing connections only from your device.'), 
-					"?display=advancedsettings&view=category&category_id=Asterisk%20Builtin%20mini-HTTP%20server", 
-					true, true);
-			}
-		}
 		$output = "[general]\n";
 		$output .= "enabled=".($freepbx_conf->get_conf_setting('HTTPENABLED') ? 'yes' : 'no')."\n";
 		$output .= "enablestatic=".($freepbx_conf->get_conf_setting('HTTPENABLESTATIC') ? 'yes' : 'no')."\n";

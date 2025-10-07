@@ -1242,3 +1242,39 @@ $set['sortorder'] = 100;
 $set['type'] = CONF_TYPE_BOOL;
 $freepbx_conf->define_conf_setting('ALLOW_MODULE_HOOK_IN',$set);
 $freepbx_conf->commit_conf_settings();
+
+$current_httpbindaddress = $freepbx_conf->get_conf_setting('HTTPBINDADDRESS');
+$nt = \notifications::create();
+if ($current_httpbindaddress === '::') {
+	$freepbx_conf->set('HTTPBINDADDRESS', '127.0.0.1');
+}
+
+$current_httptlsbindaddress = $freepbx_conf->get_conf_setting('HTTPTLSBINDADDRESS');
+if ($current_httptlsbindaddress === '::') {
+	$freepbx_conf->set('HTTPTLSBINDADDRESS', '127.0.0.1');
+}
+
+if ($current_httpbindaddress == '::' || $current_httptlsbindaddress == '::') {
+	$uid = 'core_bindaddress_changed';
+	if(!$nt->exists('core', $uid)) {
+		$nt->add_notice('core', $uid, 
+			_('Updated Asterisk Mini HTTP Server Bind Address to Localhost'), 
+			_('Asterisk Mini HTTP Server bind address updated from "::" to "127.0.0.1" to restrict access to localhost and improve security.'), 
+			"?display=advancedsettings&view=category&category_id=Asterisk%20Builtin%20mini-HTTP%20server", 
+			true, true);
+	}
+}  else if ($current_httpbindaddress != '127.0.0.1' || $current_httptlsbindaddress != '127.0.0.1') {
+	if ($nt->exists('core', 'core_bindaddress_changed')) {
+		$nt->delete('core', 'core_bindaddress_changed');
+	}
+	if (!\FreePBX::Core()->getConfig('general_notice_bindaddress')) {
+		if(!$nt->exists('core', 'general_notice_bindaddress	')) {
+			$nt->add_notice('core', 'general_notice_bindaddress', 
+				_('Asterisk Mini HTTP Server Bind Address Security Notice'), 
+				_('The HTTP/HTTPS Bind Address is set to a non-default value. Please ensure that external access to this address is properly restricted to prevent unauthorized connections.'), 
+				"?display=advancedsettings&view=category&category_id=Asterisk%20Builtin%20mini-HTTP%20server", 
+				true, true);
+		}
+		\FreePBX::Core()->setConfig('general_notice_bindaddress',true);
+	}
+}
