@@ -1075,11 +1075,20 @@ class Core extends FreePBX_Helpers implements BMO  {
 				}
 				$first_line = true;
 				$has_headers = false;
+				$field_regex = '/^[XZN0-9+\.\-\[\]\*]*$/i';
 				foreach($uploaded_file AS $line) {
 					$line = str_replace('"', '', $line);
-					$line_as_array = explode(',', $line);
+					$delimiter = (substr_count($line, "\t") > substr_count($line, ",")) ? "\t" : ",";
+					$line_as_array = str_getcsv($line, $delimiter);
+					foreach ($line_as_array as $k => $v) {
+						$line_as_array[$k] = trim($v);
+					}
 					if ($first_line) {
-						if (str_contains(strtolower($line), 'prepend') || str_contains(strtolower($line), 'prefix') || str_contains(strtolower($line), 'match pattern') || str_contains(strtolower($line), 'callerid')) {
+						// header detection
+						if (str_contains(strtolower($line), 'prepend') ||
+							str_contains(strtolower($line), 'prefix') ||
+							str_contains(strtolower($line), 'match pattern') ||
+							str_contains(strtolower($line), 'callerid')) {
 							$has_headers = true;
 							$count_headers = count($line_as_array);
 							for ($i=0;$i<$count_headers;$i++) {
@@ -1090,41 +1099,54 @@ class Core extends FreePBX_Helpers implements BMO  {
 									case 'callerid':
 										$index[strtolower($line_as_array[$i])] = $i;
 									break;
-									default:
-									break;
 								}
 							}
 							$first_line = false;
 							continue;
-						} else if (preg_match("/^[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*$/i", $line)) {
-							$count = count($line_as_array);
-							// If no headers then assume standard order
-							$index['prepend'] = 0;
-							$index['prefix'] = 1;
-							$index['match pattern'] = 2;
-							$index['callerid'] = 3;
-							if ($count == 4) {
-								$csv_file[] = $line_as_array;
-							}
-							$first_line = false;
-							continue;
 						}
-						echo "<script>javascript:alert('" . _("Unsupported Pattern file format") . "')</script>";
-						return;
+						// no headers
+						if (count($line_as_array) != 4) {
+							echo "<script>alert('" . _("Unsupported Pattern file format") . "')</script>";
+							return;
+						}
+						$index['prepend'] = 0;
+						$index['prefix'] = 1;
+						$index['match pattern'] = 2;
+						$index['callerid'] = 3;
+						// validate fields
+						foreach ($line_as_array as $cell) {
+							if (!preg_match($field_regex, $cell)) {
+								echo "<script>alert('" . _("Unsupported Pattern file format") . "')</script>";
+								return;
+							}
+						}
+						$csv_file[] = $line_as_array;
+						$first_line = false;
+						continue;
 					}
 					if ($has_headers) {
-						if (!preg_match("/^[XZN0-9\+\.\-\[\]]*,{0,1}[XZN0-9\+\.\-\[\]]*,{0,1}[XZN0-9\+\.\-\[\]]*,{0,1}[XZN0-9\+\.\-\[\]]*$/i", $line)) {
-							echo "<script>javascript:alert('" . _("Unsupported Pattern file format") . "')</script>";
-							return;
-						} else if (count($line_as_array) != $count_headers) {
-							echo "<script>javascript:alert('" . _("Malformated csv file") . "')</script>";
+						// bad column count
+						if (count($line_as_array) != $count_headers) {
+							echo "<script>alert('" . _("Malformated csv file") . "')</script>";
 							return;
 						}
-
+						// validate each field
+						foreach ($line_as_array as $cell) {
+							if (!preg_match($field_regex, $cell)) {
+								echo "<script>alert('" . _("Unsupported Pattern file format") . "')</script>";
+								return;
+							}
+						}
 					} else {
-						if (!preg_match("/^[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*,[XZN0-9\+\.\-\[\]]*$/i", $line)) {
-							echo "<script>javascript:alert('" . _("Unsupported Pattern file format") . "')</script>";
+						if (count($line_as_array) != 4) {
+							echo "<script>alert('" . _("Unsupported Pattern file format") . "')</script>";
 							return;
+						}
+						foreach ($line_as_array as $cell) {
+							if (!preg_match($field_regex, $cell)) {
+								echo "<script>alert('" . _("Unsupported Pattern file format") . "')</script>";
+								return;
+							}
 						}
 					}
 					$index_count = count($index);
