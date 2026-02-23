@@ -3988,7 +3988,7 @@ class Core extends FreePBX_Helpers implements BMO  {
 	 * @param string $deptname       The department name
 	 * @param array $sections       Sections to allow
 	 */
-	public function addAMPUser($username, $password, $extension_low, $extension_high, $deptname, $sections, $skipSHA1 = false){
+	public function addAMPUser($username, $password, $extension_low, $extension_high, $deptname, $sections, $skipSHA1 = false, $email = ''){
 		if ($skipSHA1 || strlen($password) == 40 && ctype_xdigit($password)) {
 			$password_sha1 = $password;
 		}else {
@@ -4002,8 +4002,10 @@ class Core extends FreePBX_Helpers implements BMO  {
 			':extension_high' => $extension_high,
 			':deptname' => $deptname,
 			':sections' => $sections,
+			':email' => $email,
 		);
-		$sql = "REPLACE INTO ampusers (username, password_sha1, extension_low, extension_high, deptname, sections) VALUES (:username,
+		$sql = "REPLACE INTO ampusers (username, email, password_sha1, extension_low, extension_high, deptname, sections) VALUES (:username,
+					:email,
 					:password_sha1,
 					:extension_low,
 					:extension_high,
