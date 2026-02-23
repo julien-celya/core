@@ -3,13 +3,14 @@
 	<repo>standard</repo>
 	<category>Applications</category>
 	<name>Core</name>
-	<version>17.0.18.40</version>
+	<version>17.0.18.41</version>
 	<publisher>Sangoma Technologies Corporation</publisher>
 	<license>GPLv3+</license>
 	<licenselink>http://www.gnu.org/licenses/gpl-3.0.txt</licenselink>
 	<candisable>no</candisable>
 	<canuninstall>no</canuninstall>
 	<changelog>
+		*17.0.18.41* FREEI-2728 Changes for fixing the MFA disabled in Administration 
 		*17.0.18.40* FREEI-2512 pattern matching to allow * for prefix column in dial patterns import 
 		*17.0.18.39* Github Issue#926 Allow toggling of the Asterisk httpstatus page 
 		*17.0.18.37* FREEI-2317  HTTP Bind Address Setting &#x2013; Adjusted for Local Access Only 
