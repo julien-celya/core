@@ -78,15 +78,27 @@ switch ($action) {
 		// Check to make sure the hidden var is sane, and that they haven't changed the password field
 		if (strlen($form_password_sha1)==40 && $password == "******") {
 			// Password unchanged
-			core_ampusers_del($userdisplay);
-			core_ampusers_add($username, $form_password_sha1, $extension_low, $extension_high, "", $sections);
+			$email = core_ampusers_del($userdisplay);
+			if(!empty($email)) {
+				core_ampusers_add($username, $form_password_sha1, $extension_low, $extension_high, "", $sections, false, $email);
+			}
+			else{
+				core_ampusers_add($username, $form_password_sha1, $extension_low, $extension_high, "", $sections);
+			}
+			
 			if (\FreePBX::Modules()->checkStatus('pbxmfa')) {
 				\FreePBX::Pbxmfa()->syncMFAUsers('admin');
 			}
 		} elseif ($password != "******") {
 			// Password has been changed
-			core_ampusers_del($userdisplay);
-			core_ampusers_add($username, $password, $extension_low, $extension_high, "", $sections);
+			$email = core_ampusers_del($userdisplay);
+			if(!empty($email)) {
+				core_ampusers_add($username, $password, $extension_low, $extension_high, "", $sections, false, $email);
+			}
+			else{
+				core_ampusers_add($username, $password, $extension_low, $extension_high, "", $sections);
+			}
+
 			if (\FreePBX::Modules()->checkStatus('pbxmfa')) {
 				\FreePBX::Pbxmfa()->syncMFAUsers('admin');
 			}

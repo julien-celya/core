@@ -3924,8 +3924,11 @@ function core_do_get_config($engine) {
 function core_ampusers_del($username) {
 	global $db;
 	$username = $db->escapeSimple($username);
+	$sqlSel = "SELECT email as email FROM ampusers WHERE username = '".$username."'";
+	$result = sql($sqlSel,"getRow");
 	$sql = "DELETE FROM ampusers WHERE username = '".$username."'";
 	sql($sql,"query");
+	return $result[0];
 }
 
 function core_ampusers_list() {
