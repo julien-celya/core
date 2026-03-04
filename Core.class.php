@@ -2786,9 +2786,11 @@ class Core extends FreePBX_Helpers implements BMO  {
 				if($pjsip !== false) {
 					if(!empty($_POST["imports"])){
 						$settings = $this->checkPJSIPsettings($settings, $_POST);
+						$settings = array_merge($settings, $_POST['imports']);	
 					}
-
-					$settings = array_merge($settings, $_POST);	
+					else {
+						$settings = array_merge($settings, $_POST);	
+					}
 
 					$pjsip->addTrunk($trunknum,$settings);
 				}
