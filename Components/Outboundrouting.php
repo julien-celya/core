@@ -84,45 +84,87 @@ class Outboundrouting extends ComponentBase{
 	}
 
 	public function setOrder($route_id, $order){
+		$route_id = (int) $route_id;
 		$sql = "SELECT `seq`,`route_id` FROM `outbound_route_sequence` ORDER BY `seq`";
-		$sequence = $this->Database->query($sql)->fetchAll(\PDO::FETCH_KEY_PAIR);
-		if(!is_array($sequence)){
-			$sequence = [];
+		$rows = $this->Database->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+		if (!is_array($rows)) {
+			$rows = [];
 		}
+		$routeIds = array_map('intval', array_column($rows, 'route_id'));
+
 		if ($order === 'new') {
-			array_unshift($sequence,$route_id);
-		} elseif(is_numeric($order) && (empty($sequence[$order]) || $sequence[$order] !== $route_id)) {
-			$key = array_search($route_id,$sequence);
-			if($key !== false) {
-				unset($sequence[$key]);
-				$sequence = array_values($sequence);
-			}
-			array_splice($sequence, $order, 0, $route_id);
-			$sequence = array_values($sequence); //jic
-		} elseif(!is_numeric($order) && in_array($order,['top','bottom'])) {
-			if($order === 'bottom') {
-				$sequence[] = $route_id;
+			array_unshift($routeIds, $route_id);
+			$routeIds = array_values(array_unique($routeIds));
+
+			return $this->persistOutboundRouteSequence($routeIds, $route_id);
+		}
+		if (!is_numeric($order) && in_array($order, ['top', 'bottom'], true)) {
+			$routeIds = array_values(array_diff($routeIds, [$route_id]));
+			if ($order === 'bottom') {
+				$routeIds[] = $route_id;
 			} else {
-				array_unshift($sequence, $route_id);
+				array_unshift($routeIds, $route_id);
 			}
-			$sequence = array_values($sequence); //jic
-		} elseif(!is_numeric($order)) {
+
+			return $this->persistOutboundRouteSequence($routeIds, $route_id);
+		}
+		if (!is_numeric($order)) {
 			throw new \Exception("Dont know what to do with $order");
-		} else {
-			//order didnt change
+		}
+
+		$orderInt = (int) $order;
+		$seqs = array_map('intval', array_column($rows, 'seq'));
+		$targetIdx = null;
+		foreach ($seqs as $i => $s) {
+			if ($s === $orderInt) {
+				$targetIdx = $i;
+				break;
+			}
+		}
+		if ($targetIdx === null) {
+			throw new \Exception("Invalid sequence order: $order");
+		}
+
+		// Same slot as the hidden route_seq from the form — no rewrite.
+		if ($routeIds[$targetIdx] === $route_id) {
 			return;
 		}
 
+		$from = array_search($route_id, $routeIds, true);
+		if ($from === false) {
+			array_splice($routeIds, $targetIdx, 0, $route_id);
+			$routeIds = array_values(array_unique($routeIds));
+
+			return $this->persistOutboundRouteSequence($routeIds, $route_id);
+		}
+
+		$new = $routeIds;
+		array_splice($new, $from, 1);
+		if ($from < $targetIdx) {
+			$targetIdx--;
+		}
+		array_splice($new, $targetIdx, 0, $route_id);
+		$new = array_values(array_unique($new));
+
+		return $this->persistOutboundRouteSequence($new, $route_id);
+	}
+
+	/**
+	 * Rewrite outbound_route_sequence with contiguous seq 0..n-1.
+	 */
+	private function persistOutboundRouteSequence(array $sequence, $route_id) {
 		$this->Database->query('DELETE FROM `outbound_route_sequence` WHERE 1');
 		$stmt = $this->Database->prepare('INSERT INTO `outbound_route_sequence` (`seq`, `route_id`) VALUES (?,?)');
-		$sequence = array_unique($sequence);
-		$sequence = array_values($sequence);
+		$final_seq = null;
+		$route_id = (int) $route_id;
 		foreach ($sequence as $k => $v) {
-			$stmt->execute([$k,$v]);
-			if ($v == $route_id) {
+			$v = (int) $v;
+			$stmt->execute([$k, $v]);
+			if ($v === $route_id) {
 				$final_seq = $k;
 			}
 		}
+
 		return $final_seq;
 	}
 
