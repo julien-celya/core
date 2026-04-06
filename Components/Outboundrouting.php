@@ -121,12 +121,23 @@ class Outboundrouting extends ComponentBase{
 				break;
 			}
 		}
+		// Add Route form sets route_seq to MAX(seq)+1 (page.routing.php) meaning "append";
+		// that value is not an existing seq — only 0..n-1 exist after persistOutboundRouteSequence.
+		if ($targetIdx === null && $seqs === []) {
+			$targetIdx = 0;
+		} elseif ($targetIdx === null && $seqs !== []) {
+			$maxSeq = max($seqs);
+			if ($orderInt === $maxSeq + 1) {
+				$targetIdx = count($seqs);
+			}
+		}
 		if ($targetIdx === null) {
 			throw new \Exception("Invalid sequence order: $order");
 		}
 
 		// Same slot as the hidden route_seq from the form — no rewrite.
-		if ($routeIds[$targetIdx] === $route_id) {
+		// $targetIdx may equal count($routeIds) for "append" (MAX(seq)+1); that index does not exist yet.
+		if (isset($routeIds[$targetIdx]) && $routeIds[$targetIdx] === $route_id) {
 			return;
 		}
 
