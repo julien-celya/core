@@ -66,6 +66,11 @@ class macroDial{
         $ext->add($c,$s,'', new \ext_gotoif('$[${ITER}<=${LOOPCNT}]', 'ndloopbegin')); // if this is from rg-group, don't strip prefix
         $ext->add($c,$s,'', new \ext_macro('dial-ringall-predial-hook'));
 	$ext->add($c,$s,'', new \ext_execif('$["${DB(AMPUSER/${EXTTOCALL}/cwtone)}" = "enabled" & "${EXTENSION_STATE(${EXTTOCALL})}" = "INUSE"]', 'Set','CWRING=r(callwaiting)','Set','CWRING='));
+        // Ring groups and follow-me use macro-dial instead of macro-exten-vm, so sub-record-check was
+        // never run per extension when inbound/ring-group recording was dontcare. Apply extension
+        // recording policy before Dial(); use the first member for ringall (one Dial() to all).
+        $ext->add($c,$s,'', new \ext_set('REC_CHECKEXTEN','${CUT(FILTERED_DIAL,-,1)}'));
+        $ext->add($c,$s,'', new \ext_gosub(1,'s','sub-record-check','exten,${REC_CHECKEXTEN},dontcare'));
 	/****************************************************/
 	$ext->add($c,$s,'', new \ext_execif('$["${FMFM}" = "TRUE"]','Set','RGFMDIAL=${EXTTOCALL}','Set','RGFMDIAL=${NODEST}'));
 	$ext->add($c,$s, 'nddialapp', new \ext_gosub(1,'${RGFMDIAL}','dial-with-exten'));
@@ -110,6 +115,7 @@ class macroDial{
         $ext->add($c,$s,'', new \ext_execif('$["${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}\;volume=${DB(AMPUSER/${EXTTOCALL}/rvolume)}'));
         $ext->add($c,$s,'', new \ext_macro('dial-hunt-predial-hook'));
 	$ext->add($c,$s,'', new \ext_execif('$["${DB(AMPUSER/${EXTTOCALL}/cwtone)}" = "enabled" & "${EXTENSION_STATE(${EXTTOCALL})}" = "INUSE"]', 'Set','CWRING=r(callwaiting)','Set','CWRING='));
+	$ext->add($c,$s,'', new \ext_gosub(1,'s','sub-record-check','exten,${EXTTOCALL},dontcare'));
 	/*********************************************************/
 	$ext->add($c,$s,'', new \ext_execif('$["${FMFM}" = "TRUE"]','Set','RGFMDIAL=${EXTTOCALL}','Set','RGFMDIAL=${NODEST}'));
 	$ext->add($c,$s, 'hsdialapp', new \ext_gosub(1,'${RGFMDIAL}','dial-ext-with-exten'));
