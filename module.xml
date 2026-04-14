@@ -3,13 +3,14 @@
 	<repo>standard</repo>
 	<category>Applications</category>
 	<name>Core</name>
-	<version>17.0.18.44</version>
+	<version>17.0.18.45</version>
 	<publisher>Sangoma Technologies Corporation</publisher>
 	<license>GPLv3+</license>
 	<licenselink>http://www.gnu.org/licenses/gpl-3.0.txt</licenselink>
 	<candisable>no</candisable>
 	<canuninstall>no</canuninstall>
 	<changelog>
+		*17.0.18.45* #issue-992 Extension level call recording issue fix for ringgroup call 
 		*17.0.18.44* FREEI-2823 - Changes done for fixing exception in invalid sequence 
 		*17.0.18.43* #993 Editing Outbound Route REORDERS the routes 
 		*17.0.18.42* #972 Changes for fixing Bulk Handler Trunk Import Bug 
