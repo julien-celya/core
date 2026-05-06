@@ -132,7 +132,19 @@ class Outboundrouting extends ComponentBase{
 			}
 		}
 		if ($targetIdx === null) {
-			throw new \Exception("Invalid sequence order: $order");
+			// Be tolerant of stale/non-contiguous sequence values (seen in restores):
+			// place before the first existing seq greater than requested order, or append.
+			if ($orderInt <= 0) {
+				$targetIdx = 0;
+			} else {
+				$targetIdx = count($seqs);
+				foreach ($seqs as $i => $s) {
+					if ($orderInt < $s) {
+						$targetIdx = $i;
+						break;
+					}
+				}
+			}
 		}
 
 		// Same slot as the hidden route_seq from the form — no rewrite.
