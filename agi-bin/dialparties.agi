@@ -77,11 +77,13 @@ $alertinfo_set_flag = 0;
 $rvol = get_var( $AGI, "RVOL" );
 $alertinfo = get_var( $AGI, "ALERT_INFO" );
 if ($alertinfo) {
-	if($rvol !=""){
-		$headers['Alert-Info'] = $alertinfo.'\;volume='.$rvol;
-	} else {
-		$headers['Alert-Info'] = $alertinfo;
+	$headers['Alert-Info'] = $alertinfo;
+	if ($rvol != "") {
+		$headers['Alert-Info-Ring-Volume'] = min(10, max(1, (int)$rvol));
 	}
+} else if ($rvol != "") {
+	$headers['Alert-Info'] = 'normal';
+	$headers['Alert-Info-Ring-Volume'] = min(10, max(1, (int)$rvol));
 }
 
 $sippheader = get_var( $AGI, "SIPADDHEADER" );
