@@ -60,10 +60,15 @@ class macroDial{
         $ext->add($c,$s,'', new \ext_set('ITER','1'));
         $ext->add($c,$s,'ndloopbegin', new \ext_set('__EXTTOCALL','${CUT(FILTERED_DIAL,-,${ITER})}'));
         $ext->add($c,$s,'', new \ext_noop('Working with ${EXTTOCALL}'));
-        $ext->add($c,$s,'', new \ext_execif('$["${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:normal)}'));
-        $ext->add($c,$s,'', new \ext_execif('$["${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${IF($[${RVOL}>10]?10:${RVOL})}'));
-        $ext->add($c,$s,'', new \ext_execif('$["${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:normal)}'));
-        $ext->add($c,$s,'', new \ext_execif('$["${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${IF($[${DB(AMPUSER/${EXTTOCALL}/rvolume)}>10]?10:${DB(AMPUSER/${EXTTOCALL}/rvolume)})}'));
+        $ext->add($c,$s,'', new \ext_gosub('1','s','sub-check-pseries','${EXTTOCALL}'));
+        // P-series phones honor Alert-Info-Ring-Volume (1-10), not Alert-Info;volume=
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${RVOL}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${DB(AMPUSER/${EXTTOCALL}/rvolume)}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}'));
+        // D-series and other phones use Alert-Info with ;volume= (1-14)
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"!="1" & "${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}\;volume=${RVOL}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"!="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}\;volume=${DB(AMPUSER/${EXTTOCALL}/rvolume)}'));
         $ext->add($c,$s,'', new \ext_set('ITER','$[${ITER}+1]'));
         $ext->add($c,$s,'', new \ext_gotoif('$[${ITER}<=${LOOPCNT}]', 'ndloopbegin')); // if this is from rg-group, don't strip prefix
         $ext->add($c,$s,'', new \ext_macro('dial-ringall-predial-hook'));
@@ -113,10 +118,13 @@ class macroDial{
         $ext->add($c,$s,'', new \ext_set('CTLoop', '$[1 + ${CTLoop}]'));
         $ext->add($c,$s,'', new \ext_goto('a37', 's'));
         $ext->add($c,$s,'huntstart', new \ext_noop("Hunt Dial Start"));
-        $ext->add($c,$s,'', new \ext_execif('$["${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:normal)}'));
-        $ext->add($c,$s,'', new \ext_execif('$["${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${IF($[${RVOL}>10]?10:${RVOL})}'));
-        $ext->add($c,$s,'', new \ext_execif('$["${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:normal)}'));
-        $ext->add($c,$s,'', new \ext_execif('$["${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${IF($[${DB(AMPUSER/${EXTTOCALL}/rvolume)}>10]?10:${DB(AMPUSER/${EXTTOCALL}/rvolume)})}'));
+        $ext->add($c,$s,'', new \ext_gosub('1','s','sub-check-pseries','${EXTTOCALL}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${RVOL}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${DB(AMPUSER/${EXTTOCALL}/rvolume)}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"!="1" & "${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}\;volume=${RVOL}'));
+        $ext->add($c,$s,'', new \ext_execif('$["${IS_PPHONE}"!="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info)=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}\;volume=${DB(AMPUSER/${EXTTOCALL}/rvolume)}'));
         $ext->add($c,$s,'', new \ext_macro('dial-hunt-predial-hook'));
 	$ext->add($c,$s,'', new \ext_execif('$["${DB(AMPUSER/${EXTTOCALL}/cwtone)}" = "enabled" & "${EXTENSION_STATE(${EXTTOCALL})}" = "INUSE"]', 'Set','CWRING=r(callwaiting)','Set','CWRING='));
 	$ext->add($c,$s,'', new \ext_gosub(1,'s','sub-record-check','exten,${EXTTOCALL},dontcare'));

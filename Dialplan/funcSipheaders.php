@@ -23,9 +23,10 @@ class funcSipheaders{
 		$ext->add($c,$e,'', new \ext_noop('Applying SIP Headers to channel ${CHANNEL}'));
 		$ext->add($c,$e,'', new \ext_set('Dchan','${CUT(CHANNEL,/,2)}'));
 		$ext->add($c,$e,'', new \ext_set('TECH', '${CUT(CHANNEL,/,1)}'));
-		$ext->add($c,$e,'', new \ext_set('SIPHEADERKEYS', '${HASHKEYS(SIPHEADERS)}'));
+		// Prefer inherited __SIPHEADERS from the caller; fall back to SIPHEADERS when present.
+		$ext->add($c,$e,'', new \ext_set('SIPHEADERKEYS', '${IF($[${LEN(${HASHKEYS(__SIPHEADERS)})}>0]?${HASHKEYS(__SIPHEADERS)}:${HASHKEYS(SIPHEADERS)})}'));
 		$ext->add($c,$e,'', new \ext_while('$["${SET(sipkey=${SHIFT(SIPHEADERKEYS)})}" != ""]'));
-		$ext->add($c,$e,'', new \ext_set('sipheader', '${HASH(SIPHEADERS,${sipkey})}'));
+		$ext->add($c,$e,'', new \ext_set('sipheader', '${IF($[${LEN(${HASH(__SIPHEADERS,${sipkey})})}>0]?${HASH(__SIPHEADERS,${sipkey})}:${HASH(SIPHEADERS,${sipkey})})}'));
 		$driver = \FreePBX::Config()->get("ASTSIPDRIVER");
 		if (in_array($driver,array("both","chan_sip"))) {
 			$ext->add($c,$e,'', new \ext_execif('$["${sipheader}" = "unset" & "${TECH}" = "SIP"]','SIPRemoveHeader','${sipkey}:'));
@@ -48,5 +49,29 @@ class funcSipheaders{
 		$ext->add($c,$e,'', new \ext_endwhile(''));
 		$ext->add($c,$e,'', new \ext_return());
 
+		self::addPseriesCheck($ext);
+	}
+
+	/**
+	 * Set IS_PPHONE=1 for Sangoma P-series (User-Agent prefix "Sangoma P", same as macro-autoanswer).
+	 */
+	static function addPseriesCheck($ext) {
+		$c = 'sub-check-pseries';
+		$s = 's';
+		$ext->add($c, $s, '', new \ext_set('IS_PPHONE', '0'));
+		$ext->add($c, $s, '', new \ext_set('DEVICE', '${DB(DEVICE/${ARG1}/dial)}'));
+		$ext->add($c, $s, '', new \ext_gotoif('$["${DEVICE:0:5}" = "PJSIP"]', 'pjsipua'));
+		$ext->add($c, $s, '', new \ext_gotoif('$["${DEVICE:0:3}" = "SIP"]', 'sipua'));
+		$ext->add($c, $s, 'done', new \ext_return());
+
+		$ext->add($c, $s, 'sipua', new \ext_set('USERAGENT', '${SIPPEER(${CUT(DEVICE,/,2)},useragent)}'));
+		$ext->add($c, $s, '', new \ext_goto('uacheck'));
+
+		$ext->add($c, $s, 'pjsipua', new \ext_set('AOR', '${CUT(DEVICE,/,2)}'));
+		$ext->add($c, $s, '', new \ext_set('CONTACT', '${PJSIP_AOR(${AOR},contact)}'));
+		$ext->add($c, $s, '', new \ext_set('USERAGENT', '${PJSIP_CONTACT(${CONTACT},user_agent)}'));
+
+		$ext->add($c, $s, 'uacheck', new \ext_execif('$["${USERAGENT:0:9}" = "Sangoma P"]', 'Set', 'IS_PPHONE=1'));
+		$ext->add($c, $s, '', new \ext_goto('done'));
 	}
 }

@@ -957,7 +957,8 @@ class dialparties{
 	static function alertInfo($ext) {
 		$c = 'dialparties-alertinfo'; // Context
 		$ext->add($c, 's', '', new \ext_noop('Setting Alert-Info:  ${HASH(dialparties,ALERTINFO)}'));
-		$ext->add($c, 's', '', new \ext_execif('$["${RVOL}"!=""]','Set','ALERTINFO=${ALERTINFO}\;volume=${RVOL}','Set','ALERTINFO=${ALERTINFO}'));
+		$ext->add($c, 's', '', new \ext_noop('RVOL ${RVOL} applied per destination in macro-dial'));
+		$ext->add($c, 's', '', new \ext_setvar('ALERTINFO','${ALERTINFO}'));
 		$ext->add($c, 's', '', new \ext_setvar('HASH(__SIPHEADERS,Alert-Info)','${ALERTINFO}'));
 		$ext->add($c, 's', '', new \ext_return());
 	}

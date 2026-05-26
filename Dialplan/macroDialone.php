@@ -67,13 +67,14 @@ class macroDialone{
 		$at = ($at != "none" && $at != "inherit") ? $at : '';
 		$ext->add($mcontext,$exten,'', new \ext_execif('$[${LEN(${ATTENDEDTRANSFER})}!=0]', 'Set', 'ALERT_INFO='.str_replace(';','\;',$at)));
 
-		//Now set Alert Info (ringtone) and ring volume override (separate P-series headers)
-		$ext->add($mcontext,$exten,'', new \ext_execif('$["${RVOL}"!="" & "${ALERT_INFO}"=""]', 'Set', 'ALERT_INFO=normal'));
-		$ext->add($mcontext,$exten,'', new \ext_execif('$["${RVOL}"!=""', 'Set', 'RVOL_RING=${IF($[${RVOL}>10]?10:${RVOL})}'));
-		$ext->add($mcontext,$exten,'', new \ext_execif('$["${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'RVOL_RING=${IF($[${DB(AMPUSER/${EXTTOCALL}/rvolume)}>10]?10:${DB(AMPUSER/${EXTTOCALL}/rvolume)})}'));
-		$ext->add($mcontext,$exten,'', new \ext_execif('$["${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != "" & "${ALERT_INFO}"=""]', 'Set', 'ALERT_INFO=normal'));
+		$ext->add($mcontext,$exten,'', new \ext_gosub('1','s','sub-check-pseries','${EXTTOCALL}'));
+		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${RVOL}'));
+		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"!=""]', 'Set', 'ALERT_INFO=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}'));
+		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${DB(AMPUSER/${EXTTOCALL}/rvolume)}'));
+		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'ALERT_INFO=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}'));
+		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"!="1" & "${RVOL}"!=""]', 'Set', 'ALERT_INFO=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}\;volume=${RVOL}'));
+		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"!="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'ALERT_INFO=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}\;volume=${DB(AMPUSER/${EXTTOCALL}/rvolume)}'));
 		$ext->add($mcontext,$exten,'', new \ext_gosubif('$["${ALERT_INFO}"!="" & "${ALERT_INFO}"!=" "]', 'func-set-sipheader,s,1', false, 'Alert-Info,${ALERT_INFO}'));
-		$ext->add($mcontext,$exten,'', new \ext_gosubif('$["${RVOL_RING}"!=""]', 'func-set-sipheader,s,1', false, 'Alert-Info-Ring-Volume,${RVOL_RING}'));
 		// This is now broken. SIPADDHEADER needs to be a hash. TODO figure out how to fix this
 		// $ext->add($mcontext,$exten,'', new \ext_execif('$["${SIPADDHEADER}"!=""]', 'SIPAddHeader', '${SIPADDHEADER}'));
 
