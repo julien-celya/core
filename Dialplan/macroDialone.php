@@ -68,6 +68,8 @@ class macroDialone{
 		$ext->add($mcontext,$exten,'', new \ext_execif('$[${LEN(${ATTENDEDTRANSFER})}!=0]', 'Set', 'ALERT_INFO='.str_replace(';','\;',$at)));
 
 		$ext->add($mcontext,$exten,'', new \ext_gosub('1','s','sub-check-pseries','${EXTTOCALL}'));
+		// Drop inherited P-series volume header on S/D legs (e.g. queue call after a P agent was rung).
+		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"!="1"]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=unset'));
 		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"!=""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${RVOL}'));
 		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"!=""]', 'Set', 'ALERT_INFO=${IF($["${ALERT_INFO}"!=""]?${ALERT_INFO}:Normal)}'));
 		$ext->add($mcontext,$exten,'', new \ext_execif('$["${IS_PPHONE}"="1" & "${RVOL}"="" & "${DB(AMPUSER/${EXTTOCALL}/rvolume)}" != ""]', 'Set', 'HASH(__SIPHEADERS,Alert-Info-Ring-Volume)=${DB(AMPUSER/${EXTTOCALL}/rvolume)}'));
