@@ -5,6 +5,9 @@ namespace FreePBX\modules\Core\Restore;
 class Routing extends Corebase{
 	public function setConfigs($configs){
 		$routing = new \FreePBX\modules\Core\Components\Outboundrouting($this->FreePBX->Database);
+		usort($configs, function ($a, $b) {
+			return (int) $a['seq'] <=> (int) $b['seq'];
+		});
 		foreach ($configs as $route) {
 			// get notif
 			$emailfrom = $emailto =  $emailsubject =  $emailbody = '';

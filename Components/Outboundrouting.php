@@ -129,22 +129,21 @@ class Outboundrouting extends ComponentBase{
 			$maxSeq = max($seqs);
 			if ($orderInt === $maxSeq + 1) {
 				$targetIdx = count($seqs);
+			} elseif (in_array($orderInt, $seqs, true) && array_search($route_id, $routeIds, true) === false) {
+				throw new \Exception("Duplicate sequence order: $order");
+			} else {
+				// Relative rank: seq values may have gaps (e.g. after deleting early routes).
+				$lessThan = 0;
+				foreach ($seqs as $s) {
+					if ($s < $orderInt) {
+						$lessThan++;
+					}
+				}
+				$targetIdx = min($lessThan, count($seqs));
 			}
 		}
 		if ($targetIdx === null) {
-			// Be tolerant of stale/non-contiguous sequence values (seen in restores):
-			// place before the first existing seq greater than requested order, or append.
-			if ($orderInt <= 0) {
-				$targetIdx = 0;
-			} else {
-				$targetIdx = count($seqs);
-				foreach ($seqs as $i => $s) {
-					if ($orderInt < $s) {
-						$targetIdx = $i;
-						break;
-					}
-				}
-			}
+			throw new \Exception("Invalid sequence order: $order");
 		}
 
 		// Same slot as the hidden route_seq from the form — no rewrite.
@@ -333,3 +332,4 @@ class Outboundrouting extends ComponentBase{
 		return true;
 	}
 }
+
